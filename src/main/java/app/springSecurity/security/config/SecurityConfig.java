@@ -1,11 +1,12 @@
 package app.springSecurity.security.config;
 
-import app.springSecurity.Repo.UserRepo;
+import app.springSecurity.repo.UserRepo;
 import app.springSecurity.entities.AppUser;
 import app.springSecurity.security.filter.JwtAuthenticationFilter;
 import app.springSecurity.security.filter.JwtAuthorizationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -17,7 +18,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.ArrayList;
@@ -61,12 +61,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         //désactiver la protection contre les frames(l'apparition des div)
-        http.headers().disable();
-
-        //ajouter un filtre
-        http.addFilter(new JwtAuthenticationFilter());
-        //le 1er filtre qui va s'executer
-        http.addFilterBefore(new JwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.headers().frameOptions().disable();
 
        /*
         //activer un form d'auth
@@ -76,8 +71,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         */
 
+        http.authorizeRequests().antMatchers("/refreshToken/**","/login/**").permitAll();
+       /*
+       //Autoriser les ressources pour chaque role
+        http.authorizeRequests().antMatchers(HttpMethod.POST,"/sessions/**").hasAuthority("ADMIN");
+        http.authorizeRequests().antMatchers(HttpMethod.GET,"/sessions/**").hasAuthority("USER");
+        */
         //toutes les ressources necessitent une auth
         http.authorizeRequests().anyRequest().authenticated();
+
 
         /*
         //autoriser une ressource
@@ -87,5 +89,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
          /*toutes les requetes ne necessitent pas une auth
         http.authorizeRequests().anyRequest().permitAll();*/
+
+
+        //ajouter un filtre(Middleware)
+        http.addFilter(new JwtAuthenticationFilter());
+        //le 1er filtre qui va s'executer(instantiation,et le type du filtre)
+        http.addFilterBefore(new JwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 }

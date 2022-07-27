@@ -45,11 +45,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         //authResult.getPrincipal() return user qui est s'auth
         User user=(User) authResult.getPrincipal();
         Algorithm algoSignature =Algorithm.HMAC256("mns");
-        //le access token doit etre actualiser pour chaque 5 min
+        //le access token doit etre actualiser pour chaque 10 min
         //et donc ona besoin d'un refresh token(eviter le changement des roles,long durée)
         String JWTAccessToken= JWT.create()
                 .withSubject(user.getUsername())
-                        .withExpiresAt(new Date(System.currentTimeMillis()+5*60*1000))
+                        .withExpiresAt(new Date(System.currentTimeMillis()+10*60*1000))
                                 .withIssuer(request.getRequestURL().toString())
                                         .withClaim("roles",user.getAuthorities().stream().map(ga->ga.getAuthority()).collect(Collectors.toList()))
                                           .sign(algoSignature);
@@ -57,10 +57,10 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
        //1erement je verifie refreshtokent et puis access token                                         .sign(algoSignature);
         String JWTRefreshToken= JWT.create()
                 .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis()+15*60*1000)) //15 min
+                .withExpiresAt(new Date(System.currentTimeMillis()+60*60*1000)) //15 min
                 .withIssuer(request.getRequestURL().toString())
                 .sign(algoSignature);
-        Map idToken=new HashMap();
+        Map<String,String> idToken=new HashMap();
         idToken.put("access-token",JWTAccessToken);
         idToken.put("refresh-token",JWTRefreshToken);
         response.setContentType("application/json");

@@ -1,4 +1,4 @@
-package app.springSecurity.Repo;
+package app.springSecurity.repo;
 
 import app.springSecurity.entities.AppRole;
 import org.springframework.data.jpa.repository.JpaRepository;
